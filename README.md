@@ -1,4 +1,4 @@
-# Coding Exercise (20 min)
+# Coding Exercise (45 min)
 
 ## Title
 
