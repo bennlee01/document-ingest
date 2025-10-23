@@ -38,7 +38,7 @@ Implement the ingest component to:
 - **Test files:** `sample.pdf`, `sample.docx`, `sample.png`
 
 ## Result model (for validation + reporting)
-\`\`\`txt
+```txt
 type IngestResult = {
   detectedMime: String,
   size: Long,
@@ -46,10 +46,10 @@ type IngestResult = {
   ok: Boolean,
   errors: List[String]  // empty if ok
 }
-\`\`\`
+```
 
 ## Interfaces (language-agnostic sketch)
-\`\`\`txt
+```txt
 type UploadMeta = {
   filename: String,
   claimedMime: String,
@@ -77,7 +77,7 @@ trait Ingestor {
   // Returns void; any failure should be reflected in errors and/or throw if fatal.
   def ingest(meta: UploadMeta, cfg: IngestConfig, src: ByteSource, sink: IngestSink): Unit
 }
-\`\`\`
+```
 
 ## Functional requirements
 - **Content-based MIME** detection (inspect bytes, not just filename).
