@@ -21,10 +21,22 @@ namespace DocumentIngestApp
             var ingestor = new Ingestor();
             var sink = new MockSink();
 
+            // Get the project directory dynamically
+            string projectDir = Directory.GetParent(AppContext.BaseDirectory)!.Parent!.Parent!.Parent!.FullName;
+            string resourcesDir = Path.Combine(projectDir, "resources");
+
             string[] testFiles = { "sample.pdf", "sample.docx", "sample.png" };
             foreach (var file in testFiles)
             {
-                var bytes = File.ReadAllBytes(file);
+                string filePath = Path.Combine(resourcesDir, file);
+
+                if (!File.Exists(filePath))
+                {
+                    Console.WriteLine($"File not found: {filePath}");
+                    continue;
+                }
+
+                var bytes = File.ReadAllBytes(filePath);
                 var meta = new UploadMeta
                 {
                     Filename = file,

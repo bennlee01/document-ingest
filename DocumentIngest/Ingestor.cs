@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Security.Cryptography;
+using System.Text;
+using System.Linq;
 
 namespace DocumentIngestApp
 {
@@ -9,62 +10,52 @@ namespace DocumentIngestApp
     {
         public void Ingest(UploadMeta meta, IngestConfig cfg, ByteSource src, IngestSink sink)
         {
-            var result = new IngestResult();
-            using var sha256 = SHA256.Create();
+            if (meta == null) throw new ArgumentNullException(nameof(meta));
+            if (cfg == null) throw new ArgumentNullException(nameof(cfg));
+            if (src == null) throw new ArgumentNullException(nameof(src));
+            if (sink == null) throw new ArgumentNullException(nameof(sink));
 
-            var bytesCollected = new List<byte>();
+            var errors = new List<string>();
             long totalBytes = 0;
 
-            try
+            using (var sha256 = SHA256.Create())
             {
+                // Read all chunks into a single list
+                var bufferChunks = new List<byte>();
+
                 byte[] chunk;
-                while ((chunk = src.NextChunk())?.Length > 0)
+                while ((chunk = src.NextChunk()).Length > 0)
                 {
-                    bytesCollected.AddRange(chunk);
                     sha256.TransformBlock(chunk, 0, chunk.Length, null, 0);
+                    bufferChunks.AddRange(chunk); // Flatten
                     totalBytes += chunk.Length;
-
-                    if (totalBytes > cfg.MaxContentLength)
-                        result.Errors.Add($"Exceeds maxContentLength: {cfg.MaxContentLength}");
                 }
+
+                // Finalize SHA256
                 sha256.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+                string hashHex = BitConverter.ToString(sha256.Hash!).Replace("-", "").ToLowerInvariant();
 
-                result.Size = totalBytes;
-                result.Sha256 = BitConverter.ToString(sha256.Hash).Replace("-", "").ToLower();
-                result.DetectedMime = DetectMime(bytesCollected.ToArray());
+                // Detect MIME
+                string detectedMime = MimeDetector.DetectMime(bufferChunks.ToArray());
 
+                // Validation
                 if (meta.ContentLength.HasValue && meta.ContentLength.Value != totalBytes)
-                    result.Errors.Add($"contentLength mismatch: {meta.ContentLength.Value} vs actual {totalBytes}");
+                    errors.Add($"Content length mismatch: expected {meta.ContentLength.Value}, actual {totalBytes}");
 
-                if (!cfg.AcceptedMimes.Contains(result.DetectedMime))
-                    result.Errors.Add($"detected MIME not accepted: {result.DetectedMime}");
+                if (totalBytes > cfg.MaxContentLength)
+                    errors.Add($"Content exceeds max allowed length of {cfg.MaxContentLength} bytes");
 
-                // Forward to sink
-                sink.Persist(meta, result, new ArrayByteSource(bytesCollected.ToArray()));
-            }
-            catch (Exception ex)
-            {
-                result.Errors.Add($"Exception during ingest: {ex.Message}");
-                sink.Persist(meta, result, new ArrayByteSource(bytesCollected.ToArray()));
-            }
-        }
+                if (!cfg.AcceptedMimes.Contains(detectedMime))
+                    errors.Add($"Detected MIME '{detectedMime}' is not in the accepted MIME types");
 
-        private string DetectMime(byte[] data)
-        {
-            if (data.Length >= 4)
-            {
-                // PDF
-                if (data[0] == 0x25 && data[1] == 0x50 && data[2] == 0x44 && data[3] == 0x46)
-                    return "application/pdf";
-                // DOCX (ZIP-based)
-                if (data[0] == 0x50 && data[1] == 0x4B)
-                    return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-                // PNG
-                if (data.Length >= 8 &&
-                    data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47)
-                    return "image/png";
+                bool ok = errors.Count == 0;
+
+                // Build result
+                var result = new IngestResult(detectedMime, totalBytes, hashHex, ok, errors);
+
+                // Forward bytes to sink
+                sink.Persist(meta, result, new ArrayByteSource(bufferChunks.ToArray()));
             }
-            return "application/octet-stream";
         }
     }
 }
