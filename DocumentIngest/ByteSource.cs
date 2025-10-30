@@ -2,9 +2,9 @@ using System;
 
 namespace DocumentIngestApp
 {
+    // Finite, read-once sequence of bytes
     public interface ByteSource
     {
-        // Returns next chunk of bytes or empty array if EOF
-        byte[] NextChunk();
+        byte[] NextChunk(); // returns empty array at EOF
     }
 }

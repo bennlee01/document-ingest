@@ -4,13 +4,7 @@ namespace DocumentIngestApp
 {
     public class IngestConfig
     {
-        public long MaxContentLength { get; }
-        public HashSet<string> AcceptedMimes { get; }
-
-        public IngestConfig(long maxContentLength, HashSet<string> acceptedMimes)
-        {
-            MaxContentLength = maxContentLength;
-            AcceptedMimes = acceptedMimes;
-        }
+        public long MaxContentLength { get; set; }
+        public HashSet<string> AcceptedMimes { get; set; } = new HashSet<string>();
     }
 }

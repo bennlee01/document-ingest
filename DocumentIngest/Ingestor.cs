@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 
@@ -10,38 +11,42 @@ namespace DocumentIngestApp
         {
             var result = new IngestResult();
             using var sha256 = SHA256.Create();
+
+            var bytesCollected = new List<byte>();
             long totalBytes = 0;
 
-            // Read all bytes once
-            byte[] buffer;
-            using var ms = new MemoryStream();
-            while ((buffer = src.NextChunk())?.Length > 0)
+            try
             {
-                ms.Write(buffer, 0, buffer.Length);
-                sha256.TransformBlock(buffer, 0, buffer.Length, null, 0);
-                totalBytes += buffer.Length;
+                byte[] chunk;
+                while ((chunk = src.NextChunk())?.Length > 0)
+                {
+                    bytesCollected.AddRange(chunk);
+                    sha256.TransformBlock(chunk, 0, chunk.Length, null, 0);
+                    totalBytes += chunk.Length;
 
-                if (totalBytes > cfg.MaxContentLength)
-                    result.Errors.Add($"exceeds maxContentLength: {cfg.MaxContentLength}");
+                    if (totalBytes > cfg.MaxContentLength)
+                        result.Errors.Add($"Exceeds maxContentLength: {cfg.MaxContentLength}");
+                }
+                sha256.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+
+                result.Size = totalBytes;
+                result.Sha256 = BitConverter.ToString(sha256.Hash).Replace("-", "").ToLower();
+                result.DetectedMime = DetectMime(bytesCollected.ToArray());
+
+                if (meta.ContentLength.HasValue && meta.ContentLength.Value != totalBytes)
+                    result.Errors.Add($"contentLength mismatch: {meta.ContentLength.Value} vs actual {totalBytes}");
+
+                if (!cfg.AcceptedMimes.Contains(result.DetectedMime))
+                    result.Errors.Add($"detected MIME not accepted: {result.DetectedMime}");
+
+                // Forward to sink
+                sink.Persist(meta, result, new ArrayByteSource(bytesCollected.ToArray()));
             }
-            sha256.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
-
-            result.Size = totalBytes;
-            result.Sha256 = BitConverter.ToString(sha256.Hash).Replace("-", "").ToLower();
-
-            // Detect MIME (simplified: file signature)
-            var bytesArray = ms.ToArray();
-            result.DetectedMime = DetectMime(bytesArray);
-
-            // Validate claimedMime/contentLength
-            if (meta.ContentLength.HasValue && meta.ContentLength.Value != totalBytes)
-                result.Errors.Add($"contentLength mismatch: {meta.ContentLength.Value} vs actual {totalBytes}");
-
-            if (!cfg.AcceptedMimes.Contains(result.DetectedMime))
-                result.Errors.Add($"detected MIME not accepted: {result.DetectedMime}");
-
-            // Forward to sink
-            sink.Persist(meta, result, new ArrayByteSource(bytesArray));
+            catch (Exception ex)
+            {
+                result.Errors.Add($"Exception during ingest: {ex.Message}");
+                sink.Persist(meta, result, new ArrayByteSource(bytesCollected.ToArray()));
+            }
         }
 
         private string DetectMime(byte[] data)
@@ -55,33 +60,11 @@ namespace DocumentIngestApp
                 if (data[0] == 0x50 && data[1] == 0x4B)
                     return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
                 // PNG
-                if (data.Length >= 8 && data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47)
+                if (data.Length >= 8 &&
+                    data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47)
                     return "image/png";
             }
             return "application/octet-stream";
-        }
-    }
-
-    // Helper ByteSource for byte arrays
-    public class ArrayByteSource : ByteSource
-    {
-        private readonly byte[] _data;
-        private int _position = 0;
-
-        public ArrayByteSource(byte[] data)
-        {
-            _data = data;
-        }
-
-        public byte[] NextChunk()
-        {
-            if (_position >= _data.Length) return Array.Empty<byte>();
-
-            int chunkSize = Math.Min(8192, _data.Length - _position);
-            var chunk = new byte[chunkSize];
-            Array.Copy(_data, _position, chunk, 0, chunkSize);
-            _position += chunkSize;
-            return chunk;
         }
     }
 }
