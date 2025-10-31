@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/benjaminlee/RiderProjects/DocumentIngest/DocumentIngest/DocumentIngest.csproj",
+      "projectUniqueName": "/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/DocumentIngest.csproj",
       "projectName": "DocumentIngest",
-      "projectPath": "/Users/benjaminlee/RiderProjects/DocumentIngest/DocumentIngest/DocumentIngest.csproj",
+      "projectPath": "/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/DocumentIngest.csproj",
       "packagesPath": "/Users/benjaminlee/.nuget/packages/",
-      "outputPath": "/Users/benjaminlee/RiderProjects/DocumentIngest/DocumentIngest/obj/",
+      "outputPath": "/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/benjaminlee/.nuget/NuGet/NuGet.Config"

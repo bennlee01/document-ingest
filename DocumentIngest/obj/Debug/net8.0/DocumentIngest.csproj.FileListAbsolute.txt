@@ -1,0 +1,15 @@
+/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/obj/Debug/net8.0/DocumentIngest.GeneratedMSBuildEditorConfig.editorconfig
+/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/obj/Debug/net8.0/DocumentIngest.AssemblyInfoInputs.cache
+/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/obj/Debug/net8.0/DocumentIngest.AssemblyInfo.cs
+/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/obj/Debug/net8.0/DocumentIngest.csproj.CoreCompileInputs.cache
+/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/obj/Debug/net8.0/DocumentIngest.sourcelink.json
+/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/bin/Debug/net8.0/DocumentIngest
+/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/bin/Debug/net8.0/DocumentIngest.deps.json
+/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/bin/Debug/net8.0/DocumentIngest.runtimeconfig.json
+/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/bin/Debug/net8.0/DocumentIngest.dll
+/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/bin/Debug/net8.0/DocumentIngest.pdb
+/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/obj/Debug/net8.0/DocumentIngest.dll
+/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/obj/Debug/net8.0/refint/DocumentIngest.dll
+/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/obj/Debug/net8.0/DocumentIngest.pdb
+/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/obj/Debug/net8.0/DocumentIngest.genruntimeconfig.cache
+/Users/benjaminlee/RiderProjects/document-ingest-submission/DocumentIngest/obj/Debug/net8.0/ref/DocumentIngest.dll
