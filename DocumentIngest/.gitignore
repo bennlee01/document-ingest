@@ -1,0 +1,14 @@
+# IDE
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# OS
+.DS_Store
+
+# Build output
+bin/
+obj/
+
